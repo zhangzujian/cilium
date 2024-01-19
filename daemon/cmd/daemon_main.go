@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/asm"
@@ -1687,7 +1686,6 @@ func newDaemonPromise(params daemonParams) promise.Promise[*Daemon] {
 	}
 
 	var daemon *Daemon
-	var wg sync.WaitGroup
 
 	params.Lifecycle.Append(hive.Hook{
 		OnStart: func(hive.HookContext) error {
@@ -1710,7 +1708,6 @@ func newDaemonPromise(params daemonParams) promise.Promise[*Daemon] {
 				daemon.statusCollector.Close()
 			}
 			cleaner.Clean()
-			wg.Wait()
 			return nil
 		},
 	})
