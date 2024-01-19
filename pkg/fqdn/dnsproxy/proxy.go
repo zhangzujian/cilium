@@ -69,16 +69,8 @@ type DNSProxy struct {
 	// design now.
 	LookupRegisteredEndpoint LookupEndpointIDByIPFunc
 
-	// LookupSecIDByIP is a provided callback that returns the IP's security ID
-	// from the ipcache.
-	// Note: this is a little pointless since this proxy is in-process but it is
-	// intended to allow us to switch to an external proxy process by forcing the
-	// design now.
-	LookupSecIDByIP LookupSecIDByIPFunc
-
-	// LookupIPsBySecID is a provided callback that returns the IPs by security ID
-	// from the ipcache.
-	LookupIPsBySecID LookupIPsBySecIDFunc
+	// IPCache is the interface to the IP cache used to query identities and IP addresses.
+	IPCache IPCacheGetter
 
 	// NotifyOnDNSMsg is a provided callback by which the proxy can emit DNS
 	// response data. It is intended to wire into a DNS cache and a
@@ -152,6 +144,14 @@ type DNSProxy struct {
 
 	// UnbindAddress unbinds dns servers from socket in order to stop serving DNS traffic before proxy shutdown
 	unbindAddress func()
+}
+
+// IPCacheGetter is the interface used to query the IP cache.
+type IPCacheGetter interface {
+	// LookupIPsBySecID  returns the IP address' security identity from the ipcache.
+	LookupSecIDByIP(ip netip.Addr) (secID ipcache.Identity, exists bool)
+	// LookupByIdentity returns the IP addressses associated with security identity from the ipcache.
+	LookupByIdentity(nid identity.NumericIdentity) []string
 }
 
 // regexCacheEntry is a lookup entry used to cache a compiled regex
@@ -232,10 +232,10 @@ func (p *DNSProxy) skipIPInRestorationRLocked(ip string) bool {
 // GetRules creates a fresh copy of EP's DNS rules to be stored
 // for later restoration.
 func (p *DNSProxy) GetRules(endpointID uint16) (restore.DNSRules, error) {
-	// Lock ordering note: Acquiring the IPCache read lock (as LookupIPsBySecID does) while holding
+	// Lock ordering note: Acquiring the IPCache read lock (as IPCache.LookupByIdentity does) while holding
 	// the proxy lock can lead to a deadlock. Avoid this by reading the state from DNSProxy while
 	// holding the read lock, then perform the IPCache lookups.
-	// Note that IPCache state may change in between calls to LookupIPsBySecID.
+	// Note that IPCache state may change in between calls to IPCache.LookupByIdentity.
 	p.RLock()
 
 	type selRegex struct {
@@ -272,7 +272,7 @@ func (p *DNSProxy) GetRules(endpointID uint16) (restore.DNSRules, error) {
 		Loop:
 			for _, nid := range nids {
 				// Note: p.RLock must not be held during this call to IPCache
-				nidIPs := p.LookupIPsBySecID(nid)
+				nidIPs := p.IPCache.LookupByIdentity(nid)
 				p.RLock()
 				for _, ip := range nidIPs {
 					if p.skipIPInRestorationRLocked(ip) {
@@ -509,15 +509,6 @@ func (allow perEPAllow) getPortRulesForID(endpointID uint64, destPort uint16) (r
 // See DNSProxy.LookupRegisteredEndpoint for usage.
 type LookupEndpointIDByIPFunc func(ip netip.Addr) (endpoint *endpoint.Endpoint, err error)
 
-// LookupSecIDByIPFunc Func wraps logic to lookup an IP's security ID from the
-// ipcache.
-// See DNSProxy.LookupSecIDByIP for usage.
-type LookupSecIDByIPFunc func(ip netip.Addr) (secID ipcache.Identity, exists bool)
-
-// LookupIPsBySecIDFunc Func wraps logic to lookup an IPs by security ID from the
-// ipcache.
-type LookupIPsBySecIDFunc func(nid identity.NumericIdentity) []string
-
 // NotifyOnDNSMsgFunc handles propagating DNS response data
 // See DNSProxy.LookupEndpointIDByIP for usage.
 type NotifyOnDNSMsgFunc func(lookupTime time.Time, ep *endpoint.Endpoint, epIPPort string, serverID identity.NumericIdentity, serverAddr string, msg *dns.Msg, protocol string, allowed bool, stat *ProxyRequestContext) error
@@ -607,8 +598,7 @@ func StartDNSProxy(
 	enableDNSCompression bool,
 	maxRestoreDNSIPs int,
 	lookupEPFunc LookupEndpointIDByIPFunc,
-	lookupSecIDFunc LookupSecIDByIPFunc,
-	lookupIPsFunc LookupIPsBySecIDFunc,
+	ipcache IPCacheGetter,
 	notifyFunc NotifyOnDNSMsgFunc,
 	concurrencyLimit int, concurrencyGracePeriod time.Duration,
 ) (*DNSProxy, error) {
@@ -622,8 +612,7 @@ func StartDNSProxy(
 
 	p := &DNSProxy{
 		LookupRegisteredEndpoint: lookupEPFunc,
-		LookupSecIDByIP:          lookupSecIDFunc,
-		LookupIPsBySecID:         lookupIPsFunc,
+		IPCache:                  ipcache,
 		NotifyOnDNSMsg:           notifyFunc,
 		logLimiter:               logging.NewLimiter(10*time.Second, 1),
 		lookupTargetDNSServer:    lookupTargetDNSServer,
@@ -938,7 +927,7 @@ func (p *DNSProxy) ServeDNS(w dns.ResponseWriter, request *dns.Msg) {
 	// Ignore invalid IP - getter will handle invalid value.
 	targetServerAddr, _ := ippkg.AddrFromIP(targetServerIP)
 	targetServerID := identity.GetWorldIdentityFromIP(targetServerAddr)
-	if serverSecID, exists := p.LookupSecIDByIP(targetServerAddr); !exists {
+	if serverSecID, exists := p.IPCache.LookupSecIDByIP(targetServerAddr); !exists {
 		scopedLog.WithField("server", targetServerAddrStr).Debug("cannot find server ip in ipcache, defaulting to WORLD")
 	} else {
 		targetServerID = serverSecID.ID

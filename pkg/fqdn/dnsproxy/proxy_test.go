@@ -150,6 +150,36 @@ type DummySelectorCacheUser struct{}
 func (d *DummySelectorCacheUser) IdentitySelectionUpdated(selector policy.CachedSelector, added, deleted []identity.NumericIdentity) {
 }
 
+type mockIPCache struct{}
+
+func (m *mockIPCache) LookupSecIDByIP(ip netip.Addr) (ipcache.Identity, bool) {
+	DNSServerListenerAddr := (s.dnsServer.Listener.Addr()).(*net.TCPAddr)
+	switch {
+	case ip.String() == DNSServerListenerAddr.IP.String():
+		ident := ipcache.Identity{
+			ID:     dstID1,
+			Source: source.Unspec}
+		return ident, true
+	default:
+		ident := ipcache.Identity{
+			ID:     dstID2,
+			Source: source.Unspec}
+		return ident, true
+	}
+}
+
+func (m *mockIPCache) LookupByIdentity(nid identity.NumericIdentity) []string {
+	DNSServerListenerAddr := (s.dnsServer.Listener.Addr()).(*net.TCPAddr)
+	switch nid {
+	case dstID1:
+		return []string{DNSServerListenerAddr.IP.String()}
+	case dstID2:
+		return []string{"127.0.0.1", "127.0.0.2"}
+	default:
+		return nil
+	}
+}
+
 // Setup identities, ports and endpoint IDs we will need
 var (
 	cacheAllocator          = cache.NewCachingIdentityAllocator(&testidentity.IdentityAllocatorOwnerMock{})
@@ -201,34 +231,7 @@ func (s *DNSProxyTestSuite) SetUpTest(c *C) {
 			}
 			return endpoint.NewEndpointWithState(s, s, testipcache.NewMockIPCache(), &endpoint.FakeEndpointProxy{}, testidentity.NewMockIdentityAllocator(nil), uint16(epID1), endpoint.StateReady), nil
 		},
-		// LookupSecIDByIP
-		func(ip netip.Addr) (ipcache.Identity, bool) {
-			DNSServerListenerAddr := (s.dnsServer.Listener.Addr()).(*net.TCPAddr)
-			switch {
-			case ip.String() == DNSServerListenerAddr.IP.String():
-				ident := ipcache.Identity{
-					ID:     dstID1,
-					Source: source.Unspec}
-				return ident, true
-			default:
-				ident := ipcache.Identity{
-					ID:     dstID2,
-					Source: source.Unspec}
-				return ident, true
-			}
-		},
-		// LookupIPsBySecID
-		func(nid identity.NumericIdentity) []string {
-			DNSServerListenerAddr := (s.dnsServer.Listener.Addr()).(*net.TCPAddr)
-			switch nid {
-			case dstID1:
-				return []string{DNSServerListenerAddr.IP.String()}
-			case dstID2:
-				return []string{"127.0.0.1", "127.0.0.2"}
-			default:
-				return nil
-			}
-		},
+		&mockIPCache{},
 		// NotifyOnDNSMsg
 		func(lookupTime time.Time, ep *endpoint.Endpoint, epIPPort string, serverID identity.NumericIdentity, dstAddr string, msg *dns.Msg, protocol string, allowed bool, stat *ProxyRequestContext) error {
 			return nil
