@@ -62,12 +62,8 @@ type DNSProxy struct {
 	// BindPort is the port in BindAddr.
 	BindPort uint16
 
-	// LookupRegisteredEndpoint is a provided callback that returns the endpoint ID
-	// as a uint16.
-	// Note: this is a little pointless since this proxy is in-process but it is
-	// intended to allow us to switch to an external proxy process by forcing the
-	// design now.
-	LookupRegisteredEndpoint LookupEndpointIDByIPFunc
+	// EndpointsLookup is ...
+	Endpoints EndpointGetter
 
 	// IPCache is the interface to the IP cache used to query identities and IP addresses.
 	IPCache IPCacheGetter
@@ -144,6 +140,12 @@ type DNSProxy struct {
 
 	// UnbindAddress unbinds dns servers from socket in order to stop serving DNS traffic before proxy shutdown
 	unbindAddress func()
+}
+
+// EndpointGetter is the interface used to query endpoints.
+type EndpointGetter interface {
+	// LookupIP looks up endpoint by IP address
+	LookupIP(ip netip.Addr) (ep *endpoint.Endpoint)
 }
 
 // IPCacheGetter is the interface used to query the IP cache.

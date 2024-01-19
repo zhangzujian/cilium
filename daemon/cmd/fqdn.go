@@ -181,7 +181,9 @@ func (d *Daemon) bootstrapFQDN(possibleEndpoints map[uint16]*endpoint.Endpoint, 
 	proxy.DefaultDNSProxy, err = dnsproxy.StartDNSProxy("", port,
 		option.Config.EnableIPv4, option.Config.EnableIPv6,
 		option.Config.ToFQDNsEnableDNSCompression,
-		option.Config.DNSMaxIPsPerRestoredRule, d.lookupEPByIP, d.ipcache,
+		option.Config.DNSMaxIPsPerRestoredRule,
+		d.lookupEPByIP,
+		d.ipcache,
 		d.notifyOnDNSMsg, option.Config.DNSProxyConcurrencyLimit, option.Config.DNSProxyConcurrencyProcessingGracePeriod)
 	if err == nil {
 		// Increase the ProxyPort reference count so that it will never get released.
