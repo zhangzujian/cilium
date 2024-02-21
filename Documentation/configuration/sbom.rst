@@ -31,22 +31,4 @@ Prerequisites
 Download SBOM
 =============
 
-The SBOM can be downloaded from the supplied Cilium image using the
-``cosign download sbom`` command.
-
-.. code-block:: shell-session
-
-    $ cosign download sbom --output-file sbom.spdx <Image URL>
-
-Verify SBOM Image Signature
-===========================
-
-To ensure the SBOM is tamper-proof, its signature can be verified using the
-``cosign verify`` command.
-
-.. code-block:: shell-session
-
-    $ COSIGN_EXPERIMENTAL=1 cosign verify --certificate-github-workflow-repository cilium/cilium --certificate-oidc-issuer https://token.actions.githubusercontent.com --attachment sbom <Image URL> | jq
-
-It can be validated that the image was signed using Github Actions in the Cilium
-repository from the ``Issuer`` and ``Subject`` fields of the output.
+If you want to ensure a tamper-proof SBOM, download it using ``cosign download attestation <image uri>``.
