@@ -16,3 +16,13 @@ runs:
         echo "CILIUM_CLI_VERSION=$CILIUM_CLI_VERSION" >> $GITHUB_ENV
         echo "PUSH_TO_DOCKER_HUB=true" >> $GITHUB_ENV
         echo "GCP_PERF_RESULTS_BUCKET=gs://cilium-scale-results" >> $GITHUB_ENV
+
+        # renovate: datasource=github-releases depName=kubernetes-sigs/kind
+        KIND_VERSION="v0.22.0"
+        # renovate: datasource=docker
+        KIND_K8S_IMAGE="quay.io/cilium/kindest-node:v1.29.0-rc.1@sha256:6631d58da3569930cf21697c2113feb9c76bc044c1c13d98808a3695dd91d8b0"
+        KIND_K8S_VERSION=$(echo "$KIND_K8S_IMAGE" | sed -r 's|.+:(v[0-9a-z.-]+)(@.+)?|\1|')
+
+        echo "KIND_VERSION=$KIND_VERSION" >> $GITHUB_ENV
+        echo "KIND_K8S_IMAGE=$KIND_K8S_IMAGE" >> $GITHUB_ENV
+        echo "KIND_K8S_VERSION=$KIND_K8S_VERSION" >> $GITHUB_ENV
