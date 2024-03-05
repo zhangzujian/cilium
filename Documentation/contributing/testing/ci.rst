@@ -58,8 +58,6 @@ them all at once:
 +------------------+--------------------------+
 | v1.13            | /test-backport-1.13      |
 +------------------+--------------------------+
-| v1.12            | /test-backport-1.12      |
-+------------------+--------------------------+
 
 Pull requests submitted against older stable branches such as v1.13 may also be
 subject to Jenkins CI jobs. For more information, see
