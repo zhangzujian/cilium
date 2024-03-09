@@ -77,13 +77,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
 
-      - name: Login to quay.io for CI
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME_CI }}
-          password: ${{ secrets.QUAY_PASSWORD_CI }}
-
       - name: Getting image tag
         id: tag
         run: |
@@ -160,7 +153,7 @@ jobs:
           # Only push when the event name was a GitHub push, this is to avoid
           # re-pushing the image tags when we only want to re-create the Golang
           # docker cache after the workflow "Image CI Cache Cleaner" was terminated.
-          push: ${{ github.event_name == 'push' }}
+          push: false
           platforms: linux/amd64,linux/arm64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.floating_tag }}
@@ -180,7 +173,7 @@ jobs:
           # Only push when the event name was a GitHub push, this is to avoid
           # re-pushing the image tags when we only want to re-create the Golang
           # docker cache after the workflow "Image CI Cache Cleaner" was terminated.
-          push: ${{ github.event_name == 'push' }}
+          push: false
           platforms: linux/amd64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.floating_tag }}-race
@@ -203,7 +196,7 @@ jobs:
           # Only push when the event name was a GitHub push, this is to avoid
           # re-pushing the image tags when we only want to re-create the Golang
           # docker cache after the workflow "Image CI Cache Cleaner" was terminated.
-          push: ${{ github.event_name == 'push' }}
+          push: push
           platforms: linux/amd64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.floating_tag }}-unstripped
@@ -299,7 +292,7 @@ jobs:
           provenance: false
           context: .
           file: ${{ matrix.dockerfile }}
-          push: true
+          push: false
           platforms: linux/amd64,linux/arm64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.tag }}
@@ -315,7 +308,7 @@ jobs:
           provenance: false
           context: .
           file: ${{ matrix.dockerfile }}
-          push: true
+          push: false
           platforms: linux/amd64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.tag }}-race
@@ -334,7 +327,7 @@ jobs:
           provenance: false
           context: .
           file: ${{ matrix.dockerfile }}
-          push: true
+          push: false
           platforms: linux/amd64
           tags: |
             quay.io/${{ env.QUAY_ORGANIZATION_DEV }}/${{ matrix.name }}-ci:${{ steps.tag.outputs.tag }}-unstripped
