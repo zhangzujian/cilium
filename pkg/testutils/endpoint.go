@@ -53,6 +53,7 @@ func NewTestHostEndpoint() TestEndpoint {
 
 func (e *TestEndpoint) ConntrackLocalLocked() bool                  { return false }
 func (e *TestEndpoint) RequireARPPassthrough() bool                 { return false }
+func (e *TestEndpoint) RequireNDPPassthrough() bool                 { return false }
 func (e *TestEndpoint) RequireEgressProg() bool                     { return false }
 func (e *TestEndpoint) RequireRouting() bool                        { return false }
 func (e *TestEndpoint) RequireEndpointRoute() bool                  { return false }

@@ -55,6 +55,10 @@ type CompileTimeConfiguration interface {
 	// ARP passthrough for this endpoint
 	RequireARPPassthrough() bool
 
+	// RequireARPPassthrough returns true if the datapath must implement
+	// NDP passthrough for this endpoint
+	RequireNDPPassthrough() bool
+
 	// RequireEgressProg returns true if the endpoint requires an egress
 	// program attached to the InterfaceName() invoking the section
 	// "to-container"

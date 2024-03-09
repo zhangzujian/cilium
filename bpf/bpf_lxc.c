@@ -769,11 +769,13 @@ static __always_inline int __tail_handle_ipv6(struct __ctx_buff *ctx,
 	if (!revalidate_data_pull(ctx, &data, &data_end, &ip6))
 		return DROP_INVALID;
 
+#ifndef ENABLE_NDP_PASSTHROUGH
 	/* Handle special ICMPv6 NDP messages, and all remaining packets
 	 * are subjected to forwarding into the container.
 	 */
 	if (unlikely(is_icmp6_ndp(ctx, ip6, ETH_HLEN)))
 		return icmp6_ndp_handle(ctx, ETH_HLEN, METRIC_EGRESS);
+#endif
 
 	if (unlikely(!is_valid_lxc_src_ip(ip6)))
 		return DROP_INVALID_SIP;

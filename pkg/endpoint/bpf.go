@@ -1455,6 +1455,12 @@ func (e *Endpoint) RequireARPPassthrough() bool {
 	return e.DatapathConfiguration.RequireArpPassthrough
 }
 
+// RequireNDPPassthrough returns true if the datapath must implement NDP
+// passthrough for this endpoint
+func (e *Endpoint) RequireNDPPassthrough() bool {
+	return e.DatapathConfiguration.RequireNdpPassthrough
+}
+
 // RequireEgressProg returns true if the endpoint requires bpf_lxc with section
 // "to-container" to be attached at egress on the host facing veth pair
 func (e *Endpoint) RequireEgressProg() bool {

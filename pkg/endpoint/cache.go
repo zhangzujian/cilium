@@ -35,6 +35,7 @@ type epInfoCache struct {
 	ipv6                   netip.Addr
 	conntrackLocal         bool
 	requireARPPassthrough  bool
+	requireNDPPassthrough  bool
 	requireEgressProg      bool
 	requireRouting         bool
 	requireEndpointRoute   bool
@@ -66,6 +67,7 @@ func (e *Endpoint) createEpInfoCache(epdir string) *epInfoCache {
 		ipv6:                   e.IPv6Address(),
 		conntrackLocal:         e.ConntrackLocalLocked(),
 		requireARPPassthrough:  e.RequireARPPassthrough(),
+		requireNDPPassthrough:  e.RequireNDPPassthrough(),
 		requireEgressProg:      e.RequireEgressProg(),
 		requireRouting:         e.RequireRouting(),
 		requireEndpointRoute:   e.RequireEndpointRoute(),
@@ -144,6 +146,12 @@ func (ep *epInfoCache) GetOptions() *option.IntOptions {
 // passthrough for this endpoint
 func (ep *epInfoCache) RequireARPPassthrough() bool {
 	return ep.requireARPPassthrough
+}
+
+// RequireNDPPassthrough returns true if the datapath must implement NDP
+// passthrough for this endpoint
+func (ep *epInfoCache) RequireNDPPassthrough() bool {
+	return ep.requireNDPPassthrough
 }
 
 // RequireEgressProg returns true if the endpoint requires bpf_lxc with section

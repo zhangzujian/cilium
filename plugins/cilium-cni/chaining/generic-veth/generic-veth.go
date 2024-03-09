@@ -197,6 +197,10 @@ func (f *GenericVethChainer) Add(ctx context.Context, pluginCtx chainingapi.Plug
 			// the pod
 			RequireArpPassthrough: true,
 
+			// kube-ovn requires NDP passthrough between Linux and
+			// the pod
+			RequireNdpPassthrough: true,
+
 			// The route is pointing directly into the veth of the
 			// pod, install a host-facing egress program to
 			// implement ingress policy and to provide reverse NAT

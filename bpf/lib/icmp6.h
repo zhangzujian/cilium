@@ -416,7 +416,11 @@ icmp6_host_handle(struct __ctx_buff *ctx, int l4_off, bool handle_ns)
 		return DROP_INVALID;
 
 	if (type == ICMP6_NS_MSG_TYPE && handle_ns)
+#ifdef ENABLE_NDP_PASSTHROUGH
+		return CTX_ACT_OK;
+#else
 		return icmp6_handle_ns(ctx, ETH_HLEN, METRIC_INGRESS);
+#endif
 
 #ifdef ENABLE_HOST_FIREWALL
 	/* When the host firewall is enabled, we drop and allow ICMPv6 messages

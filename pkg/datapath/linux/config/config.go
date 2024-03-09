@@ -1075,6 +1075,10 @@ func (h *HeaderfileWriter) writeTemplateConfig(fw *bufio.Writer, e datapath.Endp
 		fmt.Fprint(fw, "#define ENABLE_ARP_RESPONDER 1\n")
 	}
 
+	if e.RequireNDPPassthrough() {
+		fmt.Fprint(fw, "#define ENABLE_NDP_PASSTHROUGH 1\n")
+	}
+
 	if e.ConntrackLocalLocked() {
 		ctmap.WriteBPFMacros(fw, e)
 	} else {

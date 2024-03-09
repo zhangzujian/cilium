@@ -35,6 +35,9 @@ type EndpointDatapathConfiguration struct {
 	// Enable ARP passthrough mode
 	RequireArpPassthrough bool `json:"require-arp-passthrough,omitempty"`
 
+	// Enable NDP passthrough mode
+	RequireNdpPassthrough bool `json:"require-ndp-passthrough,omitempty"`
+
 	// Endpoint requires a host-facing egress program to be attached to implement ingress policy and reverse NAT.
 	//
 	RequireEgressProg bool `json:"require-egress-prog,omitempty"`

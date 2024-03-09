@@ -3009,6 +3009,10 @@ func init() {
           "description": "Enable ARP passthrough mode",
           "type": "boolean"
         },
+        "require-ndp-passthrough": {
+          "description": "Enable NDP passthrough mode",
+          "type": "boolean"
+        },
         "require-egress-prog": {
           "description": "Endpoint requires a host-facing egress program to be attached to implement ingress policy and reverse NAT.\n",
           "type": "boolean"
@@ -8871,6 +8875,10 @@ func init() {
         },
         "require-arp-passthrough": {
           "description": "Enable ARP passthrough mode",
+          "type": "boolean"
+        },
+        "require-ndp-passthrough": {
+          "description": "Enable NDP passthrough mode",
           "type": "boolean"
         },
         "require-egress-prog": {
